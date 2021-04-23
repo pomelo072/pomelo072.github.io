@@ -4,6 +4,41 @@
   
     
     <entry>
+      <title>OS学习_6.S081介绍</title>
+      <link href="2021/04/23/OS%E5%AD%A6%E4%B9%A0-6-S081%E4%BB%8B%E7%BB%8D/"/>
+      <url>2021/04/23/OS%E5%AD%A6%E4%B9%A0-6-S081%E4%BB%8B%E7%BB%8D/</url>
+      
+        <content type="html"><![CDATA[<h1 id="Introduction-and-Examples"><a href="#Introduction-and-Examples" class="headerlink" title="Introduction and Examples"></a>Introduction and Examples</h1><h2 id="目标"><a href="#目标" class="headerlink" title="目标"></a>目标</h2><ol><li>理解操作系统的设计和实现. 设计是指整体的系统结构, 实现是指具体的代码设计</li><li>了解操作系统工作原理, 动手实现OS, 并通过操作系统的接口, 编写系统软件.</li></ol><h2 id="操作系统本身的目标"><a href="#操作系统本身的目标" class="headerlink" title="操作系统本身的目标"></a>操作系统本身的目标</h2><ol><li>抽象硬件. 硬件本身是较低层次的资源, 操作系统<strong>实现了高层次的接口和抽象</strong>, 像进程(Process),文件系统(file System)等, 为其他硬件提供了一个基本的环境, 也提供了更好的移植性.</li><li>其次是使得多个的应用之间能够共享计算机底层的硬件资源. 我们能够在计算机上同时运行多个应用而他们之间不会相互影响, 这叫<strong>多路复用 (multiplex)</strong>.</li><li>在多路复用下我们要保证这些程序不会相互影响, 需要<strong>隔离(Isolation)</strong>.</li><li>但是我们也需要一些有用的影响, 我们需要能够<strong>共享(Sharing)</strong>. 例如像数据交互, 进程通信等.</li><li>用户想要能够自主控制是否共享, 我们需要一个<strong>权限系统(Security / Access Control System)</strong>.</li><li>在确保操作系统自身服务正常运行的情况下, 能为应用提供<strong>高性能(Performance)</strong>, 且OS不能阻碍应用获取高的性能, 甚至需要帮助应用获得高性能.</li><li>一个操作系统需要能够<strong>满足不同用户的不同需求</strong>, 支持很多不同类型的应用. 可以打游戏, 写文档, 还能运行数据库服务.</li></ol><h2 id="操作系统结构"><a href="#操作系统结构" class="headerlink" title="操作系统结构"></a>操作系统结构</h2><table><thead><tr><th>应用</th><th>编译器</th><th>Shell</th><th>DB</th></tr></thead><tbody><tr><td>文件系统</td><td>进程管理</td><td>内存分配</td><td>访问控制</td></tr><tr><td>CPU</td><td>内存</td><td>硬盘</td><td>网络接口</td></tr></tbody></table><p>底层是计算机硬件. 整个计算机共用这些硬件资源</p><p>中间是内核服务, 用来管理控制计算机的资源, 同时管理用户进程, 操作系统的核心.</p><p>顶层是用户的应用.</p><p>操作系统主要研究系统的内核, 连接内核和应用之间的接口, 内核服务的架构.</p><h3 id="Kernel-API"><a href="#Kernel-API" class="headerlink" title="Kernel API"></a>Kernel API</h3><p>类似于程序的函数调用, 是向内核发起系统调用, 使得应用能够访问内核中的服务.</p><p>与函数调用不同的是, 系统调用会跳到内核中进行.</p><p>内核是在计算机启动时第一个运行的, 且始终在运行着. 内核拥有操作硬件的权限, 执行系统调用就能跳到内核中操作硬件, 而程序中的函数调用做不到这点.</p><h2 id="困难与乐趣并存"><a href="#困难与乐趣并存" class="headerlink" title="困难与乐趣并存"></a>困难与乐趣并存</h2><h3 id="矛盾点"><a href="#矛盾点" class="headerlink" title="矛盾点"></a>矛盾点</h3><p>在设计操作系统时会遇到许多矛盾点.</p><ol><li>我们希望操作系统是高效且易用的.<ul><li>高效意味着我们需要在设计上更贴近硬件底层一些</li><li>易用则需要OS为应用提供可移植的抽象接口.</li><li>需要在两者中达成一个平衡.</li></ul></li><li>而在给其他人在你的OS上开发时, 你希望能够给其他程序员更简单易用的API来调取内核服务.<ul><li>接口不能太多太复杂.</li><li>接口要有强大的功能 (我理解为很实用的, 功能齐全的)</li><li>我们需要提供出简单但是又强大的接口</li></ul></li><li>最后一个矛盾是, 想要OS能给应用更多的灵活性, 同时要保证安全性.<ul><li>应用不能跳过内核直接访问到硬件影响其他应用, 或是影响操作系统.</li></ul></li></ol><table><thead><tr><th>高效</th><th>抽象</th></tr></thead><tbody><tr><td>强大</td><td>简单</td></tr><tr><td>灵活</td><td>安全</td></tr></tbody></table><p>这是在系统设计上的三个矛盾点.</p><h3 id="交互"><a href="#交互" class="headerlink" title="交互"></a>交互</h3><p>OS提供了许多特性和大量的服务, 他们之间趋向于交互, 有时候是奇怪的交互…</p><blockquote><p>两个功能, open 和 fork</p><p>使用open打开文件, 内核会返回文件的描述符 (<code>fd</code>).</p><p>使用fork新建当前进程的副本, 内核会返回新进程的进程号(<code>pid</code>).</p><p>但是在一个进程中先open一个文件, 再fork这个进程, 新的进程能否访问到之前的<code>fd</code>呢? Yes</p><p>这就是奇怪的交互</p></blockquote><h3 id="其他的点"><a href="#其他的点" class="headerlink" title="其他的点"></a>其他的点</h3><p>OS还必须要适应硬件的飞快发展, 以及各种不同的用途</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 计算机 </category>
+          
+          <category> 分布式系统 </category>
+          
+          <category> 分布式事务 </category>
+          
+          <category> 学习 </category>
+          
+          <category> OS </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> OS </tag>
+            
+            <tag> 学习 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>初识分布式事务</title>
       <link href="2021/03/22/%E5%88%9D%E8%AF%86%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/"/>
       <url>2021/03/22/%E5%88%9D%E8%AF%86%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/</url>
