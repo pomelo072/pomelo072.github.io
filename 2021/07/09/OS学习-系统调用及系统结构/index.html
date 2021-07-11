@@ -1,0 +1,330 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OS学习_系统结构及系统调用 | Pomelo</title><meta name="keywords" content="OS,学习"><meta name="author" content="Pomelo,2641316287@qq.com"><meta name="copyright" content="Pomelo"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="系统结构根据之前提到的操作系统索要达成的目标, 可以得出操作系统是为什么要存在. 无外乎有几点.  对底层硬件的抽象, 对于大部分开发来说, 硬件的东西总是比较困难的, 想办法讲硬件抽象成简单的接口更有利于开发应用. 对各应用程序之间产生隔离. 应用直接对底层硬件操作, 难免会对一些资源有所争抢, 甚至是通过底层硬件进入其他应用. 应用之间的隔离又不能完全隔离. 人和人之间要沟通, 应用之间也难免">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OS学习_系统结构及系统调用">
+<meta property="og:url" content="https://blog.pomelo072.top/2021/07/09/OS%E5%AD%A6%E4%B9%A0-%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E5%8F%8A%E7%B3%BB%E7%BB%9F%E7%BB%93%E6%9E%84/">
+<meta property="og:site_name" content="Pomelo">
+<meta property="og:description" content="系统结构根据之前提到的操作系统索要达成的目标, 可以得出操作系统是为什么要存在. 无外乎有几点.  对底层硬件的抽象, 对于大部分开发来说, 硬件的东西总是比较困难的, 想办法讲硬件抽象成简单的接口更有利于开发应用. 对各应用程序之间产生隔离. 应用直接对底层硬件操作, 难免会对一些资源有所争抢, 甚至是通过底层硬件进入其他应用. 应用之间的隔离又不能完全隔离. 人和人之间要沟通, 应用之间也难免">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://pomelo-1305373403.cos.ap-shanghai.myqcloud.com/top_img.jpg">
+<meta property="article:published_time" content="2021-07-09T01:05:25.000Z">
+<meta property="article:modified_time" content="2021-07-11T03:02:14.950Z">
+<meta property="article:author" content="Pomelo">
+<meta property="article:tag" content="OS">
+<meta property="article:tag" content="学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pomelo-1305373403.cos.ap-shanghai.myqcloud.com/top_img.jpg"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://blog.pomelo072.top/2021/07/09/OS%E5%AD%A6%E4%B9%A0-%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E5%8F%8A%E7%B3%BB%E7%BB%9F%E7%BB%93%E6%9E%84/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":50},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: Pomelo","link":"链接: ","source":"来源: Pomelo","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    jQuery: 'https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js',
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+    },
+    fancybox: {
+      js: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isanchor: true
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2021-07-11 11:02:14'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          const now = new Date()
+          const hour = now.getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else if (t === 'light') activateLightMode()
+          else activateDarkMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const fontSizeVal = saveToLocal.get('global-font-size')
+    if (fontSizeVal !== undefined) {
+      document.documentElement.style.setProperty('--global-font-size', fontSizeVal + 'px')
+    }
+    })(window)</script><meta name="generator" content="Hexo 5.4.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="author-avatar"><img class="avatar-img" src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data"><div class="data-item is-center"><div class="data-item-link"><a href="/archives/"><div class="headline">文章</div><div class="length-num">3</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/tags/"><div class="headline">标签</div><div class="length-num">4</div></a></div></div><div class="data-item is-center"><div class="data-item-link"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友友的BLOG</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('https://pomelo-1305373403.cos.ap-shanghai.myqcloud.com/top_img.jpg')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">Pomelo</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友友的BLOG</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">OS学习_系统结构及系统调用</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2021-07-09T01:05:25.000Z" title="发表于 2021-07-09 09:05:25">2021-07-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2021-07-11T03:02:14.950Z" title="更新于 2021-07-11 11:02:14">2021-07-11</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA/">计算机</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA/%E5%AD%A6%E4%B9%A0/">学习</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA/%E5%AD%A6%E4%B9%A0/OS/">OS</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">2.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>6分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="OS学习_系统结构及系统调用"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="系统结构"><a href="#系统结构" class="headerlink" title="系统结构"></a>系统结构</h1><p>根据之前提到的操作系统索要达成的目标, 可以得出操作系统是为什么要存在.</p>
+<p>无外乎有几点.</p>
+<ol>
+<li>对底层硬件的抽象, 对于大部分开发来说, 硬件的东西总是比较困难的, 想办法讲硬件抽象成简单的接口更有利于开发应用.</li>
+<li>对各应用程序之间产生隔离. 应用直接对底层硬件操作, 难免会对一些资源有所争抢, 甚至是通过底层硬件进入其他应用.</li>
+<li>应用之间的隔离又不能完全隔离. 人和人之间要沟通, 应用之间也难免要发生信息交换. 于是乎隔离和交互间又存在安全问题.</li>
+</ol>
+<h2 id="硬件抽象"><a href="#硬件抽象" class="headerlink" title="硬件抽象"></a>硬件抽象</h2><p>对于大部分人来说, 开发应用的时候能多方便就多方便, 但是想要获取更高的性能, 只能向底层硬件贴近. 对于大佬来说, 自己动手造轮子, 与硬件交互的代码自己编写成库, 无疑能够让程序获得高性能. </p>
+<p>事实上也是有这样的实现, 例如在嵌入式OS的开发中或是在实时系统(RTOS)中开发. 无外乎这些系统的目标都需要高性能, 并且目标单一.在这种情况下, 开发人员也许会选择让应用程序操作硬件资源.</p>
+<p>在平时我们使用的操作系统中, 无论是Windows或是Linux系下的系统, 设计目的并不是为了单一的某个应用, 在用户进行某项应用的操作时, 背后往往会运行着其支撑服务或是其他应用. 例如我现在在写文章, 使用的编辑器, 其背后还会有Markdown的实时渲染引擎在运作, 而渲染引擎又可能依赖别的基础服务. 当所有的应用都希望获得高性能, 所有的应用都会争抢这一份硬件资源来给自身提高战力. 这时便需要有一个人来维持这么多应用之间的”秩序”, 而操作系统就是那个领导者.</p>
+<p>除了对底层硬件资源的争夺, 更需要担心的是我们无法排除运行的应用是否是善意的. 应用直接的对硬件资源进行操作, 可能会对其他应用产生监控甚至是危害的行为.</p>
+<p><img src="https://pomelo-1305373403.cos.ap-shanghai.myqcloud.com/image-20210709173125817.png" alt="应用对硬件资源直接调用"></p>
+<p>因此, 操作系统需要作为应用程序与硬件资源之间的协调者, 一方面是抽象出硬件资源方便开发上层应用程序, 另一方面是完成对应用与硬件资源之间的隔离.</p>
+<p><img src="https://pomelo-1305373403.cos.ap-shanghai.myqcloud.com/image-20210709173417683.png" alt="应用通过操作系统调用硬件资源"></p>
+<h2 id="进程概述"><a href="#进程概述" class="headerlink" title="进程概述"></a>进程概述</h2><p>进程, 是大多数的操作系统对应用程序间隔离的实现.</p>
+<p>每个进程作为一个<strong>隔离单元</strong>, 单独为应用提供服务. 操作系统需要对众多进程之间完成其对硬件资源需求的调度. </p>
+<p>从操作系统的角度来看, 操作系统需要协调多个进程之间对硬件资源的需求. 操作系统采取了在电子设计中非常常用的复用手段. 在电子设计中我们常常将信号在频率和时间上分离, 使得一个信号能够被多次使用. 对操作系统来说, 采用了<strong>对时空 (即时间和空间) 上的分离</strong>, 使得进程对硬件资源在时间和空间上, 一方面得以提高<strong>资源的利用率</strong>, 另一方面也巧妙的实现了对各进程之间的<strong>隔离</strong>.</p>
+<p>从应用程序的角度来看,  系统将应用分配到进程. 对于每个进程来说, 进程似乎能够享用所有的硬件资源. 操作系统将进程的内存空间从物理内存上划分出来, 映射出从 0 到相应大小的内存虚拟地址空间, 当进程需要访问内存中的某个地址, 系统会将虚拟地址映射回实际的物理地址进行相应的操作, 这就是操作系统对空间上的分离, 在实现上为<strong>页表 (Page tables)</strong> 的实现. </p>
+<p><img src="https://pomelo-1305373403.cos.ap-shanghai.myqcloud.com/image-20210710160820558.png" alt="进程虚拟地址空间"></p>
+<p>在对于硬件资源时间分配上的分离, 也叫做分时复用. CPU讲一段时间分割为相同大小的时间片, 在一个极短的时间片上执行一个进程, 当到达了下一个时间片, 将当前进程挂起, 处理下一个进程, 看起来就像多个进程在同时执行, 也就是我们所说的<strong>并发</strong>. </p>
+<p><img src="https://pomelo-1305373403.cos.ap-shanghai.myqcloud.com/image-20210710161309019.png" alt="进程分时复用"></p>
+<p>通过对进程的实现, 操作系统对各应用程序之间的隔离实现便能够完成. 当然其中会有很多细节保证进程的实现能够正常进行, 后面在细说.</p>
+<h1 id="系统调用"><a href="#系统调用" class="headerlink" title="系统调用"></a>系统调用</h1><p>想要从应用程序中对相关底层资源进行调用, 首先要从应用程序跳到内核中, 由内核来完成对底层硬件资源的调用. </p>
+<p>因此, 进程可以通过系统调用使得应用代码跳入内核中执行调用对底层资源的调用, 例如文件操作, 内存分配等等. 当应用程序需要执行这些系统调用时, 需要内核临时将应用的权限提高, 也就是之前提到的<strong>权限访问机制</strong>. </p>
+<p>代码转化为CPU指令后分为特权指令和非特权指令, 因此在操作系统中也区分了内核态和用户态. 在特权指令的操作下能够完成对系统资源的调用, 因此需要在内核态中执行, 普通指令在用户态中执行. 当用户想要调用系统调用, 在<code>RISC-V</code>架构中需要调用<code>ecall</code>指令<a href="%E4%B8%8D%E5%90%8C%E7%9A%84CPU%E6%9E%B6%E6%9E%84%E5%AF%B9%E5%BA%94%E4%B8%8D%E5%90%8C%E7%9A%84%E6%8C%87%E4%BB%A4%E9%9B%86">^1</a>, 由内核来判定该次调用是否可以执行[^2],如果可以执行, 则切换成内核态即跳入内核中执行相应系统调用, 完成后退回用户态. 至此这就大致是一次系统调用的过程.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;* part of xv6-riscv&#x2F;user&#x2F;usys.S *&#x2F;</span><br><span class="line">#include &quot;kernel&#x2F;syscall.h&quot;</span><br><span class="line">.global fork</span><br><span class="line">fork:</span><br><span class="line"> li a7, SYS_fork</span><br><span class="line"> ecall</span><br><span class="line"> ret</span><br><span class="line">.global exit</span><br><span class="line">exit:</span><br><span class="line"> li a7, SYS_exit</span><br><span class="line"> ecall</span><br><span class="line"> ret</span><br><span class="line">.global wait</span><br><span class="line">wait:</span><br><span class="line"> li a7, SYS_wait</span><br><span class="line"> ecall</span><br><span class="line"> ret</span><br><span class="line"> ...</span><br></pre></td></tr></table></figure>
+
+<h2 id="内核架构"><a href="#内核架构" class="headerlink" title="内核架构"></a>内核架构</h2><p>由于加入了各类对相关底层资源调用的模块及系统调用, 内核也随之变得庞大起来, 因此产生了两大派别, 宏内核 (monolithic kernel) 和 微内核 (micro kernel).</p>
+<p>宏内核的设计使得整个操作系统都能拥有完全的硬件权限, 但也因此导致了内核体积不断的增大, 且必须保证内核中的服务完全正确且能够防止应用程序的恶意破坏. 否则一旦发生错误则会导致整个内核崩溃, 操作系统崩溃只能重新启动, 对于用户来说无疑是不能接受的事情.</p>
+<p>因此有人提出了微内核的架构设计, 即内核中只保存<code>IPC</code> (interprocess communication进程间通信), 与底层硬件交互等的底层函数, 其余文件服务, 进程管理等服务移至用户空间内作为进程实现, 保证内核的最小实现下提供服务, 减少内核崩溃的风险, 但也会导致应用操作随着进程间通信次数的增多而效率降低.</p>
+<p>两种内核架构的设计都各自有优缺点, 不同的操作系统也会由于各自的原因采取不同的设计 (也许只是设计者的喜好罢了). 并没有不好的设计, 只有不会用它的人罢了.</p>
+<h3 id="Question"><a href="#Question" class="headerlink" title="Question"></a>Question</h3><ol>
+<li>进程内部内存空间的划分及进程调度</li>
+<li>进程在内核态和用户态之间切换的凭证</li>
+<li>需要一点计组知识, 补两天.</li>
+</ol>
+<hr>
+<p>[^2]: 如判定是否访问的是该进程的内存空间, 是否存在其他权限指令等. 这样做不仅保证了进程间的相互隔离, 也保证了内核自身的安全.</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:2641316287@qq.com">Pomelo</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://blog.pomelo072.top/2021/07/09/OS%E5%AD%A6%E4%B9%A0-%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E5%8F%8A%E7%B3%BB%E7%BB%9F%E7%BB%93%E6%9E%84/">https://blog.pomelo072.top/2021/07/09/OS学习-系统调用及系统结构/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://blog.pomelo072.top" target="_blank">Pomelo</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/OS/">OS</a><a class="post-meta__tags" href="/tags/%E5%AD%A6%E4%B9%A0/">学习</a></div><div class="post_share"><div class="social-share" data-image="https://pomelo-1305373403.cos.ap-shanghai.myqcloud.com/top_img.jpg" data-sites="wechat,weibo"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button button--animated"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2021/04/23/OS%E5%AD%A6%E4%B9%A0-6-S081%E4%BB%8B%E7%BB%8D/"><img class="next-cover" src="https://pomelo-1305373403.cos.ap-shanghai.myqcloud.com/top_img.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">OS学习_6.S081介绍</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span> 相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2021/04/23/OS学习-6-S081介绍/" title="OS学习_6.S081介绍"><img class="cover" src="https://pomelo-1305373403.cos.ap-shanghai.myqcloud.com/top_img.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2021-04-23</div><div class="title">OS学习_6.S081介绍</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="card-info-avatar is-center"><img class="avatar-img" src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/><div class="author-info__name">Pomelo</div><div class="author-info__description">好想睡懒觉哎</div></div><div class="card-info-data"><div class="card-info-data-item is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">3</div></a></div><div class="card-info-data-item is-center"><a href="/tags/"><div class="headline">标签</div><div class="length-num">4</div></a></div><div class="card-info-data-item is-center"><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div></div><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/pomelo072" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:2641316287@qq.com" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn card-announcement-animation"></i><span>公告</span></div><div class="announcement_content">不定期更新一下哈~</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%B3%BB%E7%BB%9F%E7%BB%93%E6%9E%84"><span class="toc-number">1.</span> <span class="toc-text">系统结构</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A1%AC%E4%BB%B6%E6%8A%BD%E8%B1%A1"><span class="toc-number">1.1.</span> <span class="toc-text">硬件抽象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E6%A6%82%E8%BF%B0"><span class="toc-number">1.2.</span> <span class="toc-text">进程概述</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8"><span class="toc-number">2.</span> <span class="toc-text">系统调用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85%E6%A0%B8%E6%9E%B6%E6%9E%84"><span class="toc-number">2.1.</span> <span class="toc-text">内核架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Question"><span class="toc-number">2.1.1.</span> <span class="toc-text">Question</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2021/07/09/OS%E5%AD%A6%E4%B9%A0-%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E5%8F%8A%E7%B3%BB%E7%BB%9F%E7%BB%93%E6%9E%84/" title="OS学习_系统结构及系统调用"><img src="https://pomelo-1305373403.cos.ap-shanghai.myqcloud.com/top_img.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS学习_系统结构及系统调用"/></a><div class="content"><a class="title" href="/2021/07/09/OS%E5%AD%A6%E4%B9%A0-%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E5%8F%8A%E7%B3%BB%E7%BB%9F%E7%BB%93%E6%9E%84/" title="OS学习_系统结构及系统调用">OS学习_系统结构及系统调用</a><time datetime="2021-07-09T01:05:25.000Z" title="发表于 2021-07-09 09:05:25">2021-07-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/04/23/OS%E5%AD%A6%E4%B9%A0-6-S081%E4%BB%8B%E7%BB%8D/" title="OS学习_6.S081介绍"><img src="https://pomelo-1305373403.cos.ap-shanghai.myqcloud.com/top_img.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OS学习_6.S081介绍"/></a><div class="content"><a class="title" href="/2021/04/23/OS%E5%AD%A6%E4%B9%A0-6-S081%E4%BB%8B%E7%BB%8D/" title="OS学习_6.S081介绍">OS学习_6.S081介绍</a><time datetime="2021-04-23T08:34:24.000Z" title="发表于 2021-04-23 16:34:24">2021-04-23</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2021/03/22/%E5%88%9D%E8%AF%86%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/" title="初识分布式事务"><img src="https://pomelo-1305373403.cos.ap-shanghai.myqcloud.com/top_img.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="初识分布式事务"/></a><div class="content"><a class="title" href="/2021/03/22/%E5%88%9D%E8%AF%86%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/" title="初识分布式事务">初识分布式事务</a><time datetime="2021-03-22T12:16:37.000Z" title="发表于 2021-03-22 20:16:37">2021-03-22</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2021 By Pomelo</div><div class="footer_custom_text"><a target="_blank" rel="noopener" href="http://beian.miit.gov.cn/"><span>桂ICP备20004103号</span></a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font-plus" type="button" title="放大字体"><i class="fas fa-plus"></i></button><button id="font-minus" type="button" title="缩小字体"><i class="fas fa-minus"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>if (!window.MathJax) {
+  window.MathJax = {
+    loader: {
+      source: {
+        '[tex]/amsCd': '[tex]/amscd'
+      }
+    },
+    tex: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"]],
+      tags: 'ams'
+    },
+    options: {
+      renderActions: {
+        findScript: [10, doc => {
+          for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+            const display = !!node.type.match(/; *mode=display/)
+            const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+            const text = document.createTextNode('')
+            node.parentNode.replaceChild(text, node)
+            math.start = {node: text, delim: '', n: 0}
+            math.end = {node: text, delim: '', n: 0}
+            doc.math.push(math)
+          }
+        }, ''],
+        addClass: [200,() => {
+          document.querySelectorAll('mjx-container:not([display=\'true\']').forEach( node => {
+            const target = node.parentNode
+            if (!target.classList.contains('has-jax')) {
+              target.classList.add('mathjax-overflow')
+            }
+          })
+        }, '', false]
+      }
+    }
+  }
+  
+  const script = document.createElement('script')
+  script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js'
+  script.id = 'MathJax-script'
+  script.async = true
+  document.head.appendChild(script)
+} else {
+  MathJax.startup.document.state(0)
+  MathJax.texReset()
+  MathJax.typeset()
+}</script><script>if (document.getElementsByClassName('mermaid').length) {
+  if (window.mermaidJsLoad) mermaid.init()
+  else {
+    getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(() => {
+      window.mermaidJsLoad = true
+      mermaid.initialize({
+        theme: 'default',
+      })
+      true && mermaid.init()
+    })
+  }
+}</script></div><div class="aplayer no-destroy" data-id="7305631272" data-server="tencent" data-type="playlist" data-fixed="true" data-mini="true" data-listFolded="false" data-order="random" data-preload="none" data-autoplay="true" muted></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/fireworks.min.js"></script><script defer="defer" id="fluttering_ribbon" mobile="true" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/canvas-fluttering-ribbon.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/gh/metowolf/MetingJS@1.2/dist/Meting.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = [
+  'title',
+  '#config-diff',
+  '#body-wrap',
+  '#rightside-config-hide',
+  '#rightside-config-show',
+  '.js-pjax'
+]
+
+if (false) {
+  pjaxSelectors.unshift('meta[property="og:image"]', 'meta[property="og:title"]', 'meta[property="og:url"]')
+}
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof chatBtnFn === 'function' && chatBtnFn()
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // Analytics
+  if (false) {
+    MtaH5.pgv()
+  }
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+
+  typeof preloader === 'object' && preloader.endLoading()
+})
+
+
+document.addEventListener('pjax:send', function () {
+  typeof preloader === 'object' && preloader.initLoading()
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
